@@ -1,0 +1,242 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Stores gamified learner profile, XP progression, daily streak, study metrics, and unlocked achievement badge IDs.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique Firebase Auth UID of the learner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Learner display name shown on dashboard and leaderboard.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Optional profile avatar URL or preset identifier.",
+          "maxLength": 500
+        },
+        "level": {
+          "type": "integer",
+          "description": "Current player level calculated from total XP."
+        },
+        "xp": {
+          "type": "integer",
+          "description": "Total experience points earned across all learning stages."
+        },
+        "streak": {
+          "type": "integer",
+          "description": "Current consecutive days learning streak."
+        },
+        "chaptersCompleted": {
+          "type": "integer",
+          "description": "Total count of chapters completed across all subjects."
+        },
+        "totalStudyMinutes": {
+          "type": "integer",
+          "description": "Cumulative minutes spent studying on LevelUp."
+        },
+        "totalQuizzesTaken": {
+          "type": "integer",
+          "description": "Total number of stage 5 tests completed."
+        },
+        "averageTestScore": {
+          "type": "integer",
+          "description": "Average percentage score across completed chapter tests (0-100)."
+        },
+        "dailyChallengeCompletedDate": {
+          "type": "string",
+          "description": "ISO date string (YYYY-MM-DD) of the most recently completed daily challenge.",
+          "maxLength": 20
+        },
+        "unlockedBadges": {
+          "type": "array",
+          "description": "Bounded list of unlocked achievement badge IDs (max 20)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was last updated."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "avatarUrl",
+        "level",
+        "xp",
+        "streak",
+        "chaptersCompleted",
+        "totalStudyMinutes",
+        "totalQuizzesTaken",
+        "averageTestScore",
+        "dailyChallengeCompletedDate",
+        "unlockedBadges",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChapterBlueprint": {
+      "title": "ChapterBlueprint",
+      "description": "Stores an AI-generated 5-stage gamified learning blueprint for an uploaded document or study topic.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the learner who owns this chapter blueprint.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Chapter or study unit title.",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "subject": {
+          "type": "string",
+          "description": "Academic subject category.",
+          "enum": [
+            "Science",
+            "Mathematics",
+            "Computer Science",
+            "History",
+            "Literature",
+            "Economics",
+            "General"
+          ],
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "difficulty": {
+          "type": "string",
+          "description": "Difficulty rating of the chapter.",
+          "enum": ["Beginner", "Intermediate", "Advanced"],
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "estimatedMinutes": {
+          "type": "integer",
+          "description": "Estimated time in minutes to master all five stages."
+        },
+        "sourceSummary": {
+          "type": "string",
+          "description": "Executive summary of the uploaded educational material.",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "currentStage": {
+          "type": "integer",
+          "description": "Highest unlocked learning stage (1 to 5)."
+        },
+        "completedStages": {
+          "type": "array",
+          "description": "Bounded list of completed stage numbers (1 to 5)."
+        },
+        "understoodTopicIds": {
+          "type": "array",
+          "description": "Bounded list of topic IDs marked as understood by the learner."
+        },
+        "progressPercent": {
+          "type": "integer",
+          "description": "Overall completion percentage for the chapter (0 to 100)."
+        },
+        "testScore": {
+          "type": "integer",
+          "description": "Final quiz percentage score (0 to 100)."
+        },
+        "xpEarned": {
+          "type": "integer",
+          "description": "Total XP earned within this chapter."
+        },
+        "status": {
+          "type": "string",
+          "description": "Lifecycle status of the chapter journey.",
+          "enum": ["in_progress", "completed"],
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "topics": {
+          "type": "array",
+          "description": "Stage 1 structured topic hierarchy (bounded list of topic objects)."
+        },
+        "explanations": {
+          "type": "array",
+          "description": "Stage 2 simple explanations, examples, and key concepts."
+        },
+        "revisionNotes": {
+          "type": "array",
+          "description": "Stage 3 concise bulleted revision notes and takeaways."
+        },
+        "flashcards": {
+          "type": "array",
+          "description": "Stage 3 interactive front/back flashcards and definitions."
+        },
+        "mindMap": {
+          "type": "object",
+          "description": "Stage 4 interactive mind map structure with rootLabel and branches."
+        },
+        "quizQuestions": {
+          "type": "array",
+          "description": "Stage 5 multiple-choice and true/false assessment questions."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the chapter blueprint was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the chapter blueprint was last updated."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "subject",
+        "difficulty",
+        "estimatedMinutes",
+        "sourceSummary",
+        "currentStage",
+        "completedStages",
+        "understoodTopicIds",
+        "progressPercent",
+        "testScore",
+        "xpEarned",
+        "status",
+        "topics",
+        "explanations",
+        "revisionNotes",
+        "flashcards",
+        "mindMap",
+        "quizQuestions",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Learner profiles and gamification progress indexed by Firebase Auth UID."
+    },
+    "/chapters/{chapterId}": {
+      "schema": { "$ref": "#/entities/ChapterBlueprint" },
+      "description": "AI-generated 5-stage chapter blueprints owned by individual learners."
+    }
+  }
+}

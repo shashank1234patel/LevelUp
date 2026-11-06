@@ -1,0 +1,6 @@
+{
+  "name": "LevelUp – AI-Powered Gamified Learning Platform",
+  "description": "Transform any educational material into a personalized, gamified learning adventure with AI-generated blueprints, mind maps, flashcards, and interactive quests.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

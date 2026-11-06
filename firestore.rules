@@ -1,0 +1,235 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Reusable Hardened Global Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+        'userId',
+        'displayName',
+        'avatarUrl',
+        'level',
+        'xp',
+        'streak',
+        'chaptersCompleted',
+        'totalStudyMinutes',
+        'totalQuizzesTaken',
+        'averageTestScore',
+        'dailyChallengeCompletedDate',
+        'unlockedBadges',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'userId',
+        'displayName',
+        'avatarUrl',
+        'level',
+        'xp',
+        'streak',
+        'chaptersCompleted',
+        'totalStudyMinutes',
+        'totalQuizzesTaken',
+        'averageTestScore',
+        'dailyChallengeCompletedDate',
+        'unlockedBadges',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 && data.userId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.userId == request.auth.uid &&
+      data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+      data.avatarUrl is string && data.avatarUrl.size() <= 500 &&
+      data.level is int && data.level >= 1 && data.level <= 1000 &&
+      data.xp is int && data.xp >= 0 && data.xp <= 10000000 &&
+      data.streak is int && data.streak >= 0 && data.streak <= 10000 &&
+      data.chaptersCompleted is int && data.chaptersCompleted >= 0 && data.chaptersCompleted <= 10000 &&
+      data.totalStudyMinutes is int && data.totalStudyMinutes >= 0 && data.totalStudyMinutes <= 10000000 &&
+      data.totalQuizzesTaken is int && data.totalQuizzesTaken >= 0 && data.totalQuizzesTaken <= 100000 &&
+      data.averageTestScore is int && data.averageTestScore >= 0 && data.averageTestScore <= 100 &&
+      data.dailyChallengeCompletedDate is string && data.dailyChallengeCompletedDate.size() <= 20 &&
+      data.unlockedBadges is list && data.unlockedBadges.size() <= 20 &&
+      (data.unlockedBadges.size() == 0 || (data.unlockedBadges[0] is string && data.unlockedBadges[0].size() <= 50)) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidChapterBlueprint(data) {
+      return data.keys().hasAll([
+        'userId',
+        'title',
+        'subject',
+        'difficulty',
+        'estimatedMinutes',
+        'sourceSummary',
+        'currentStage',
+        'completedStages',
+        'understoodTopicIds',
+        'progressPercent',
+        'testScore',
+        'xpEarned',
+        'status',
+        'topics',
+        'explanations',
+        'revisionNotes',
+        'flashcards',
+        'mindMap',
+        'quizQuestions',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'userId',
+        'title',
+        'subject',
+        'difficulty',
+        'estimatedMinutes',
+        'sourceSummary',
+        'currentStage',
+        'completedStages',
+        'understoodTopicIds',
+        'progressPercent',
+        'testScore',
+        'xpEarned',
+        'status',
+        'topics',
+        'explanations',
+        'revisionNotes',
+        'flashcards',
+        'mindMap',
+        'quizQuestions',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 && data.userId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.userId == request.auth.uid &&
+      data.title is string && data.title.size() >= 1 && data.title.size() <= 150 &&
+      data.subject is string && data.subject.size() >= 1 && data.subject.size() <= 60 &&
+      data.subject in ['Science', 'Mathematics', 'Computer Science', 'History', 'Literature', 'Economics', 'General'] &&
+      data.difficulty is string && data.difficulty.size() >= 1 && data.difficulty.size() <= 30 &&
+      data.difficulty in ['Beginner', 'Intermediate', 'Advanced'] &&
+      data.estimatedMinutes is int && data.estimatedMinutes >= 5 && data.estimatedMinutes <= 300 &&
+      data.sourceSummary is string && data.sourceSummary.size() >= 1 && data.sourceSummary.size() <= 5000 &&
+      data.currentStage is int && data.currentStage >= 1 && data.currentStage <= 5 &&
+      data.completedStages is list && data.completedStages.size() <= 5 &&
+      (data.completedStages.size() == 0 || data.completedStages[0] is int) &&
+      data.understoodTopicIds is list && data.understoodTopicIds.size() <= 30 &&
+      (data.understoodTopicIds.size() == 0 || (data.understoodTopicIds[0] is string && data.understoodTopicIds[0].size() <= 64)) &&
+      data.progressPercent is int && data.progressPercent >= 0 && data.progressPercent <= 100 &&
+      data.testScore is int && data.testScore >= 0 && data.testScore <= 100 &&
+      data.xpEarned is int && data.xpEarned >= 0 && data.xpEarned <= 5000 &&
+      data.status is string && data.status.size() >= 1 && data.status.size() <= 20 &&
+      data.status in ['in_progress', 'completed'] &&
+      data.topics is list && data.topics.size() >= 1 && data.topics.size() <= 15 && data.topics[0] is map &&
+      data.explanations is list && data.explanations.size() >= 1 && data.explanations.size() <= 15 && data.explanations[0] is map &&
+      data.revisionNotes is list && data.revisionNotes.size() >= 1 && data.revisionNotes.size() <= 20 &&
+      data.revisionNotes[0] is string && data.revisionNotes[0].size() <= 1000 &&
+      data.flashcards is list && data.flashcards.size() >= 1 && data.flashcards.size() <= 20 && data.flashcards[0] is map &&
+      data.mindMap is map && data.mindMap.keys().hasAll(['rootLabel', 'branches']) && data.mindMap.keys().hasOnly(['rootLabel', 'branches']) &&
+      data.mindMap.rootLabel is string && data.mindMap.rootLabel.size() >= 1 && data.mindMap.rootLabel.size() <= 150 &&
+      data.mindMap.branches is list && data.mindMap.branches.size() >= 1 && data.mindMap.branches.size() <= 12 &&
+      data.quizQuestions is list && data.quizQuestions.size() >= 1 && data.quizQuestions.size() <= 15 && data.quizQuestions[0] is map &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // 4. Collection Rules: /users/{userId}
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(userId) &&
+        request.auth.uid == userId &&
+        isValidUserProfile(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser() &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        request.auth.uid == userId &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          // Action 1: Update profile details
+          incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'avatarUrl', 'updatedAt']) ||
+          // Action 2: Update gamified learning progress, XP, streak, daily challenge, and badges
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'level',
+            'xp',
+            'streak',
+            'chaptersCompleted',
+            'totalStudyMinutes',
+            'totalQuizzesTaken',
+            'averageTestScore',
+            'dailyChallengeCompletedDate',
+            'unlockedBadges',
+            'updatedAt'
+          ])
+        );
+    }
+
+    // 5. Collection Rules: /chapters/{chapterId}
+    match /chapters/{chapterId} {
+      allow get: if isSignedIn() && isValidId(chapterId) && existing().userId == request.auth.uid;
+
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(chapterId) &&
+        isValidChapterBlueprint(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+
+      allow update: if isVerifiedUser() &&
+        isValidId(chapterId) &&
+        isValidChapterBlueprint(incoming()) &&
+        existing().userId == request.auth.uid &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        existing().status != 'completed' && (
+          // Action 1: Advance stage progression, understood topics, test score, XP, or completion status
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'currentStage',
+            'completedStages',
+            'understoodTopicIds',
+            'progressPercent',
+            'testScore',
+            'xpEarned',
+            'status',
+            'updatedAt'
+          ])
+        );
+
+      allow delete: if isVerifiedUser() && isValidId(chapterId) && existing().userId == request.auth.uid;
+    }
+  }
+}
