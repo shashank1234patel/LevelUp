@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import {
   onAuthStateChanged,
@@ -89,8 +90,239 @@ const INITIAL_EMPTY_PROFILE: UserProfile = {
   unlockedBadges: [],
 };
 
+const createInteractiveSubjectBlueprint = (
+  subjectInput: string
+): ChapterBlueprint => {
+  const validSubjects: SubjectCategory[] = [
+    'Science',
+    'Mathematics',
+    'Computer Science',
+    'History',
+    'Literature',
+    'Economics',
+  ];
+  const subject: SubjectCategory = validSubjects.includes(
+    subjectInput as SubjectCategory
+  )
+    ? (subjectInput as SubjectCategory)
+    : 'Science';
+  const theme = getSubjectTheme(subject);
+
+  return {
+    id: `interactive_${subject.toLowerCase().replace(/\s+/g, '_')}`,
+    userId: 'personal_learner',
+    title: `${subject}: ${theme.themeName}`,
+    subject,
+    difficulty: 'Beginner',
+    estimatedMinutes: 15,
+    sourceSummary: theme.subtitle,
+    currentStage: 1,
+    completedStages: [],
+    understoodTopicIds: [],
+    progressPercent: 0,
+    testScore: 0,
+    xpEarned: 0,
+    status: 'in_progress',
+    topics: [
+      {
+        id: 'topic_1',
+        title: `Core Foundations of ${subject}`,
+        summary: `Essential building blocks and first principles in ${subject}.`,
+        estimatedMinutes: 5,
+        subtopics: [
+          `Key definitions in ${subject}`,
+          'How core ideas connect together',
+          'Common patterns to recognize',
+        ],
+      },
+      {
+        id: 'topic_2',
+        title: `Practical Applications`,
+        summary: `How ${subject} concepts work in everyday situations.`,
+        estimatedMinutes: 5,
+        subtopics: [
+          'Step-by-step problem solving',
+          'Real-world examples and use cases',
+        ],
+      },
+      {
+        id: 'topic_3',
+        title: `Review & Mastery Check`,
+        summary: `Synthesizing the main ideas to build lasting understanding.`,
+        estimatedMinutes: 5,
+        subtopics: [
+          'Connecting cause and effect',
+          'Avoiding common mistakes',
+        ],
+      },
+    ],
+    explanations: [
+      {
+        topicId: 'topic_1',
+        title: `Core Foundations of ${subject}`,
+        simpleExplanation: `${subject} becomes easy to understand when you break big ideas into small, connected steps.`,
+        realWorldExample: `Just like following a map through ${theme.themeName}, each concept guides you naturally to the next checkpoint.`,
+        keyConcept: `Master the core foundation first, and every advanced topic becomes much simpler.`,
+        visualAnalogy: `Picture ${theme.themeName} where each stepping stone supports the next bridge forward.`,
+      },
+      {
+        topicId: 'topic_2',
+        title: `Practical Applications`,
+        simpleExplanation: `Once you know the core rule, you can apply it to solve real problems quickly and confidently.`,
+        realWorldExample: `Observing how patterns repeat in ${subject} lets you predict outcomes before calculating them.`,
+        keyConcept: `Always connect theory to a real-life example you can picture clearly.`,
+        visualAnalogy: `Like using a compass on a trail—once calibrated, it points you in the right direction anywhere.`,
+      },
+      {
+        topicId: 'topic_3',
+        title: `Review & Mastery Check`,
+        simpleExplanation: `Reviewing how the pieces fit together turns short-term notes into permanent skill.`,
+        realWorldExample: `Explaining a concept in your own words is the fastest way to verify you truly understand it.`,
+        keyConcept: `Simple recall + clear connections = complete chapter mastery.`,
+        visualAnalogy: `Viewing the entire world map from the summit after climbing each stage.`,
+      },
+    ],
+    revisionNotes: [
+      `Start with the core definition and purpose of ${subject}.`,
+      `Link every new concept to a concrete real-world example.`,
+      `Use the visual mind map in Stage 4 to see how topics connect.`,
+      `Test your recall with flashcards before taking the Stage 5 quiz.`,
+    ],
+    flashcards: [
+      {
+        id: 'fc_1',
+        term: `What is the best way to approach ${subject}?`,
+        definition: `Break complex material into small stages: Topics, Explanation, Revision, Mind Maps, and Test.`,
+        category: 'Core Strategy',
+      },
+      {
+        id: 'fc_2',
+        term: `Why use real-world examples?`,
+        definition: `Connecting abstract ideas to everyday experiences makes them effortless to remember.`,
+        category: 'Application',
+      },
+      {
+        id: 'fc_3',
+        term: `How do Mind Maps help in Stage 4?`,
+        definition: `They show how individual subtopics branch out from the central chapter concept.`,
+        category: 'Visual Learning',
+      },
+    ],
+    mindMap: {
+      rootLabel: `${subject} Mastery`,
+      branches: [
+        {
+          id: 'branch_1',
+          label: '1. Core Concepts',
+          color: '#6546F5',
+          nodes: [
+            {
+              id: 'n_1',
+              label: 'Key Definitions',
+              detail: `The fundamental vocabulary of ${subject}.`,
+            },
+            {
+              id: 'n_2',
+              label: 'First Principles',
+              detail: 'The main rules everything else builds upon.',
+            },
+          ],
+        },
+        {
+          id: 'branch_2',
+          label: '2. Real-World Use',
+          color: '#398BFF',
+          nodes: [
+            {
+              id: 'n_3',
+              label: 'Everyday Examples',
+              detail: 'Seeing the concept in action around you.',
+            },
+            {
+              id: 'n_4',
+              label: 'Problem Solving',
+              detail: 'Applying steps clearly from start to finish.',
+            },
+          ],
+        },
+        {
+          id: 'branch_3',
+          label: '3. Connections',
+          color: '#10B981',
+          nodes: [
+            {
+              id: 'n_5',
+              label: 'Cause & Effect',
+              detail: 'Understanding why one step leads to the next.',
+            },
+          ],
+        },
+        {
+          id: 'branch_4',
+          label: '4. Quick Recall',
+          color: '#F36FA5',
+          nodes: [
+            {
+              id: 'n_6',
+              label: 'Key Takeaways',
+              detail: 'Summarizing the chapter in simple words.',
+            },
+          ],
+        },
+      ],
+    },
+    quizQuestions: [
+      {
+        id: 'q_1',
+        type: 'MCQ',
+        question: `What is the first step when learning a new chapter in ${subject}?`,
+        options: [
+          'Explore the key Topics & Subtopics in Stage 1',
+          'Skip straight to the final exam without reading',
+          'Memorize random pages out of order',
+          'Ignore real-world examples',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Starting with Stage 1 (Topics) gives you a clear roadmap of what you are about to learn.',
+        topicTag: 'Stage 1 Roadmap',
+      },
+      {
+        id: 'q_2',
+        type: 'MCQ',
+        question: 'How does Stage 2 (Explanation) make tough concepts simple?',
+        options: [
+          'By using plain language, real-life examples, and visual analogies',
+          'By using long, complicated jargon',
+          'By hiding the key takeaways',
+          'By removing all examples',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Simple words paired with real-world examples and analogies make any concept click immediately.',
+        topicTag: 'Simple Explanations',
+      },
+      {
+        id: 'q_3',
+        type: 'MCQ',
+        question: 'What is the benefit of the Visual Mind Map in Stage 4?',
+        options: [
+          'It visually connects the central topic to its main branches and sub-ideas',
+          'It deletes your revision notes',
+          'It locks previous stages',
+          'It hides topic connections',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Mind maps help your brain see how every branch connects back to the core topic.',
+        topicTag: 'Mind Maps',
+      },
+    ],
+  };
+};
+
 export default function App() {
-  const [activePage, setActivePage] = useState<ActivePage>('landing');
+  const [activePage, setActivePage] = useState<ActivePage>('stage');
   const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -117,7 +349,11 @@ export default function App() {
   } | null>(null);
 
   const activeChapter =
-    chapters.find((c) => c.id === selectedChapterId) || chapters[0];
+    chapters.find((c) => c.id === selectedChapterId) ||
+    chapters[0] ||
+    createInteractiveSubjectBlueprint(
+      selectedSubjectFilter === 'All' ? 'Science' : selectedSubjectFilter
+    );
 
   const triggerCelebration = (title: string, subtitle: string, xp: number) => {
     try {
@@ -455,10 +691,17 @@ export default function App() {
     };
 
     setChapters((prev) =>
-      prev.map((c) => (c.id === activeChapter.id ? updatedChapter : c))
+      prev.some((c) => c.id === activeChapter.id)
+        ? prev.map((c) => (c.id === activeChapter.id ? updatedChapter : c))
+        : [updatedChapter, ...prev]
     );
+    setSelectedChapterId(activeChapter.id);
 
-    if (fbUser && activeChapter.status !== 'completed') {
+    if (
+      fbUser &&
+      !activeChapter.id.startsWith('interactive_') &&
+      activeChapter.status !== 'completed'
+    ) {
       const chapRef = doc(db, 'chapters', activeChapter.id);
       try {
         await updateDoc(chapRef, {
@@ -526,10 +769,17 @@ export default function App() {
     };
 
     setChapters((prev) =>
-      prev.map((c) => (c.id === activeChapter.id ? updatedChapter : c))
+      prev.some((c) => c.id === activeChapter.id)
+        ? prev.map((c) => (c.id === activeChapter.id ? updatedChapter : c))
+        : [updatedChapter, ...prev]
     );
+    setSelectedChapterId(activeChapter.id);
 
-    if (fbUser && activeChapter.status !== 'completed') {
+    if (
+      fbUser &&
+      !activeChapter.id.startsWith('interactive_') &&
+      activeChapter.status !== 'completed'
+    ) {
       const chapRef = doc(db, 'chapters', activeChapter.id);
       try {
         await updateDoc(chapRef, {
@@ -675,9 +925,14 @@ export default function App() {
       : activeChapter?.subject || 'Science'
   );
 
-  // Reusable Empty State with Subject-Specific World Theme
+  // Reusable Empty State with Animated Subject-Specific World Theme
   const renderEmptyMaterialState = () => (
-    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-xs text-center space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-xs text-center space-y-4"
+    >
       <div className="flex items-center justify-between text-left">
         <div>
           <h2 className="text-lg font-bold text-[#1E293B]">
@@ -693,14 +948,21 @@ export default function App() {
       </div>
 
       <div className="relative h-64 sm:h-72 rounded-2xl overflow-hidden border border-slate-200/70">
-        <img
-          src={currentPreviewTheme.image}
-          alt={currentPreviewTheme.themeName}
-          className="w-full h-full object-cover transition-all duration-500"
-        />
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={currentPreviewTheme.subject}
+            src={currentPreviewTheme.image}
+            alt={currentPreviewTheme.themeName}
+            initial={{ scale: 1.06, opacity: 0.7 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ opacity: 0.7 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="w-full h-full object-cover"
+          />
+        </AnimatePresence>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex flex-col items-center justify-center p-6 text-white space-y-3">
           <div
-            className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg"
+            className="animate-float w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg"
             style={{ color: currentPreviewTheme.accentHex }}
           >
             <Upload className="w-6 h-6" />
@@ -711,7 +973,9 @@ export default function App() {
           <p className="text-xs sm:text-sm text-white/90 max-w-md">
             Upload a PDF, paste your study notes, or enter any topic to unlock this 5-stage adventure map.
           </p>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.96 }}
             type="button"
             onClick={() => setActivePage('upload')}
             style={{ backgroundColor: currentPreviewTheme.accentHex }}
@@ -719,13 +983,12 @@ export default function App() {
           >
             <Upload className="w-4 h-4" />
             <span>Upload Study Material</span>
-          </button>
+          </motion.button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 
-  // Subject World Theme Cards when browsing Course Categories
   const subjectThemeShowcaseList =
     selectedSubjectFilter === 'All'
       ? [
@@ -741,20 +1004,27 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F3F5F9] text-[#1E293B] flex flex-col">
       {/* Animated Celebration Toast */}
-      {toastBanner && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#1E293B] text-white px-5 py-4 rounded-2xl shadow-2xl border border-white/15 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center shrink-0">
-            <Trophy className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <p className="text-sm font-bold">{toastBanner.title}</p>
-            <p className="text-xs text-white/75">{toastBanner.subtitle}</p>
-          </div>
-          <span className="px-3 py-1 rounded-lg bg-amber-400 text-[#1E293B] text-xs font-bold tabular-nums">
-            +{toastBanner.xp} XP
-          </span>
-        </div>
-      )}
+      <AnimatePresence>
+        {toastBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-6 right-6 z-50 bg-[#1E293B] text-white px-5 py-4 rounded-2xl shadow-2xl border border-white/15 flex items-center gap-4"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center shrink-0">
+              <Trophy className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-bold">{toastBanner.title}</p>
+              <p className="text-xs text-white/75">{toastBanner.subtitle}</p>
+            </div>
+            <span className="px-3 py-1 rounded-lg bg-amber-400 text-[#1E293B] text-xs font-bold tabular-nums">
+              +{toastBanner.xp} XP
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-30 bg-[#F3F5F9]/95 backdrop-blur-md px-4 sm:px-8 py-4">
@@ -769,7 +1039,9 @@ export default function App() {
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               type="button"
               onClick={() => setActivePage('dashboard')}
               className="px-5 py-2.5 rounded-full bg-white shadow-xs flex items-center gap-2.5 cursor-pointer"
@@ -780,7 +1052,7 @@ export default function App() {
               <span className="text-base font-bold font-display text-[#1E293B]">
                 LevelUp
               </span>
-            </button>
+            </motion.button>
           </div>
 
           {/* Center Horizontal Pill Navigation Bar */}
@@ -791,7 +1063,9 @@ export default function App() {
                 (item.id === 'journey' &&
                   (activePage === 'blueprint' || activePage === 'stage'));
               return (
-                <button
+                <motion.button
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.96 }}
                   key={item.id}
                   type="button"
                   onClick={() => {
@@ -808,7 +1082,7 @@ export default function App() {
                     {item.icon}
                   </span>
                   <span>{item.label}</span>
-                </button>
+                </motion.button>
               );
             })}
           </nav>
@@ -860,14 +1134,16 @@ export default function App() {
               )}
             </div>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.95 }}
               type="button"
               onClick={() => setActivePage('profile')}
               className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2563EB] to-[#38BDF8] text-white font-bold text-xs flex items-center justify-center ring-2 ring-pink-200 cursor-pointer"
               title={userProfile.displayName}
             >
               {userProfile.displayName.slice(0, 2).toUpperCase()}
-            </button>
+            </motion.button>
 
             <button
               type="button"
@@ -937,7 +1213,12 @@ export default function App() {
               )}
 
               {/* Course Category & Subject Themes Section */}
-              <div className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-5">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-5"
+              >
                 <div className="flex items-center justify-between">
                   <h2 className="text-base font-bold text-[#1E293B]">
                     Course Category
@@ -951,14 +1232,16 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Category Pill Tabs (Matching Screenshot) */}
+                {/* Category Pill Tabs */}
                 <div className="flex items-center gap-2.5 overflow-x-auto pb-1">
                   {subjectTabs.map((tab) => {
                     const isSelected = selectedSubjectFilter === tab.id;
                     const tabTheme =
                       tab.id === 'All' ? null : getSubjectTheme(tab.id);
                     return (
-                      <button
+                      <motion.button
+                        whileHover={{ y: -2, scale: 1.03 }}
+                        whileTap={{ scale: 0.96 }}
                         key={tab.id}
                         type="button"
                         onClick={() => {
@@ -985,7 +1268,7 @@ export default function App() {
                           {tab.emoji}
                         </span>
                         <span>{tab.label}</span>
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -993,25 +1276,30 @@ export default function App() {
                 {/* Uploaded Chapters OR Subject Theme Worlds Grid */}
                 {filteredChapters.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {filteredChapters.map((chap) => {
+                    {filteredChapters.map((chap, idx) => {
                       const chapTheme = getSubjectTheme(chap.subject);
                       return (
-                        <div
+                        <motion.div
                           key={chap.id}
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.35, delay: idx * 0.06 }}
+                          whileHover={{ y: -6, scale: 1.015 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             setSelectedChapterId(chap.id);
                             setShowResultsCelebration(false);
                             setActiveStageNumber(chap.currentStage);
                             setActivePage('stage');
                           }}
-                          className="p-3.5 rounded-3xl bg-white border border-slate-100 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-3.5 group"
+                          className="p-3.5 rounded-3xl bg-white border border-slate-100 shadow-xs hover:shadow-lg transition-shadow cursor-pointer flex flex-col justify-between space-y-3.5 group"
                         >
                           <div className="space-y-3">
                             <div className="relative h-32 rounded-2xl overflow-hidden bg-slate-100">
                               <img
                                 src={chapTheme.image}
                                 alt={chap.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
                               />
                               <button
                                 type="button"
@@ -1038,10 +1326,12 @@ export default function App() {
 
                           <div className="space-y-2 px-1 pb-1">
                             <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-300"
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${chap.progressPercent}%` }}
+                                transition={{ duration: 0.7, ease: 'easeOut' }}
+                                className="h-full rounded-full"
                                 style={{
-                                  width: `${chap.progressPercent}%`,
                                   backgroundColor: chapTheme.accentHex,
                                 }}
                               />
@@ -1062,13 +1352,13 @@ export default function App() {
                               </span>
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {subjectThemeShowcaseList.map((themeItem) => {
+                    {subjectThemeShowcaseList.map((themeItem, idx) => {
                       const subjectChapters = chapters.filter(
                         (c) => c.subject === themeItem.subject
                       );
@@ -1086,20 +1376,28 @@ export default function App() {
                           : 0;
 
                       return (
-                        <div
+                        <motion.div
                           key={themeItem.subject}
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.35, delay: idx * 0.06 }}
+                          whileHover={{ y: -6, scale: 1.015 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             setSelectedSubjectFilter(themeItem.subject);
-                            setActivePage('upload');
+                            setSelectedChapterId('');
+                            setShowResultsCelebration(false);
+                            setActiveStageNumber(1);
+                            setActivePage('stage');
                           }}
-                          className="p-3.5 rounded-3xl bg-white border border-slate-100 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-3.5 group"
+                          className="p-3.5 rounded-3xl bg-white border border-slate-100 shadow-xs hover:shadow-lg transition-shadow cursor-pointer flex flex-col justify-between space-y-3.5 group"
                         >
                           <div className="space-y-3">
                             <div className="relative h-32 rounded-2xl overflow-hidden bg-slate-100">
                               <img
                                 src={themeItem.image}
                                 alt={themeItem.themeName}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
                               />
                             </div>
 
@@ -1115,10 +1413,12 @@ export default function App() {
 
                           <div className="space-y-2 px-1 pb-1">
                             <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-300"
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 0.7, ease: 'easeOut' }}
+                                className="h-full rounded-full"
                                 style={{
-                                  width: `${pct}%`,
                                   backgroundColor: themeItem.accentHex,
                                 }}
                               />
@@ -1137,18 +1437,24 @@ export default function App() {
                               </span>
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
                 )}
-              </div>
+              </motion.div>
             </div>
 
             {/* Right Sidebar Column (4 cols) */}
             <div className="lg:col-span-4 space-y-6">
               {/* Card 1: Performance Report */}
-              <div className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-5">
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.08 }}
+                whileHover={{ y: -3 }}
+                className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-5"
+              >
                 <div className="flex items-center justify-between">
                   <h2 className="text-base font-bold text-[#1E293B]">
                     Performance Report
@@ -1163,7 +1469,7 @@ export default function App() {
                 </div>
 
                 <div className="flex flex-col items-center text-center space-y-1.5">
-                  <div className="w-18 h-18 rounded-full p-1 bg-gradient-to-tr from-amber-400 via-pink-500 to-[#2563EB]">
+                  <div className="animate-float w-18 h-18 rounded-full p-1 bg-gradient-to-tr from-amber-400 via-pink-500 to-[#2563EB]">
                     <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-bold text-lg text-[#1E293B]">
                       {userProfile.displayName.slice(0, 2).toUpperCase()}
                     </div>
@@ -1213,10 +1519,16 @@ export default function App() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Card 2: 5-Stage Challenge Rings */}
-              <div className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-5">
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.16 }}
+                whileHover={{ y: -3 }}
+                className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-5"
+              >
                 <div className="flex items-center justify-between">
                   <h2 className="text-base font-bold text-[#1E293B]">
                     Stage Challenge
@@ -1232,16 +1544,20 @@ export default function App() {
                       !isDone &&
                       activeChapter.currentStage === st.stage;
                     return (
-                      <div key={st.stage} className="space-y-1.5 flex flex-col items-center">
+                      <motion.div
+                        key={st.stage}
+                        whileHover={{ scale: 1.08, y: -2 }}
+                        className="space-y-1.5 flex flex-col items-center"
+                      >
                         <span className="text-[11px] text-[#64748B] truncate max-w-[52px]">
                           {st.name.split(' ')[0]}
                         </span>
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          className={`w-10 h-10 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
                             isDone
                               ? 'bg-[#2563EB] text-white'
                               : isCurr
-                                ? 'border-2 border-[#2563EB] text-[#2563EB] bg-blue-50/50'
+                                ? 'border-2 border-[#2563EB] text-[#2563EB] bg-blue-50/50 animate-pulse'
                                 : 'bg-[#F3F5F9] text-[#64748B]'
                           }`}
                         >
@@ -1250,7 +1566,7 @@ export default function App() {
                         <span className="text-[10px] text-[#64748B]">
                           {isDone ? '1/1' : '0/1'}
                         </span>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
@@ -1263,10 +1579,16 @@ export default function App() {
                       : 'Select any subject world or upload material to start.'}
                   </span>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Card 3: Active Chapter Progress Bar */}
-              <div className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.24 }}
+                whileHover={{ y: -3 }}
+                className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 space-y-4"
+              >
                 <div className="flex items-center justify-between">
                   <h2 className="text-base font-bold text-[#1E293B]">
                     Chapter Progress
@@ -1277,7 +1599,7 @@ export default function App() {
                 </div>
 
                 <div className="flex items-center gap-2.5 tabular-nums">
-                  <span className="text-xl">🎯</span>
+                  <span className="text-xl animate-float">🎯</span>
                   <span className="text-2xl font-bold text-[#1E293B]">
                     {activeChapter ? `${activeChapter.progressPercent}%` : '0%'}
                   </span>
@@ -1304,16 +1626,20 @@ export default function App() {
 
                 <div className="flex items-center gap-2 pt-1">
                   <div className="flex-1 h-7 rounded-lg bg-slate-100 overflow-hidden p-0.5">
-                    <div
-                      className="h-full rounded-md transition-all duration-300"
-                      style={{
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{
                         width: `${activeChapter ? Math.max(8, activeChapter.progressPercent) : 0}%`,
+                      }}
+                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                      className="h-full rounded-md"
+                      style={{
                         backgroundColor: currentPreviewTheme.accentHex,
                       }}
                     />
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         )}
@@ -1325,19 +1651,23 @@ export default function App() {
               <h1 className="text-2xl font-bold text-[#1E293B]">
                 My Courses
               </h1>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 type="button"
                 onClick={() => setActivePage('upload')}
                 className="px-5 py-2.5 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold flex items-center gap-2 shadow-xs cursor-pointer self-start"
               >
                 <Upload className="w-4 h-4" />
                 <span>Upload Material</span>
-              </button>
+              </motion.button>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {subjectTabs.map((tab) => (
-                <button
+                <motion.button
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.96 }}
                   key={tab.id}
                   type="button"
                   onClick={() => setSelectedSubjectFilter(tab.id)}
@@ -1349,7 +1679,7 @@ export default function App() {
                 >
                   <span>{tab.emoji}</span>
                   <span>{tab.label}</span>
-                </button>
+                </motion.button>
               ))}
             </div>
 
@@ -1357,19 +1687,23 @@ export default function App() {
               renderEmptyMaterialState()
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {filteredChapters.map((chap) => {
+                {filteredChapters.map((chap, idx) => {
                   const chapTheme = getSubjectTheme(chap.subject);
                   return (
-                    <div
+                    <motion.div
                       key={chap.id}
-                      className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs flex flex-col justify-between space-y-4"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, delay: idx * 0.06 }}
+                      whileHover={{ y: -6 }}
+                      className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs hover:shadow-lg transition-shadow flex flex-col justify-between space-y-4 group"
                     >
                       <div className="space-y-3">
                         <div className="relative h-36 rounded-2xl overflow-hidden">
                           <img
                             src={chapTheme.image}
                             alt={chap.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         </div>
                         <div className="flex items-center justify-between text-xs font-semibold">
@@ -1395,10 +1729,12 @@ export default function App() {
 
                       <div className="space-y-3 pt-2 border-t border-slate-100">
                         <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                          <div
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${chap.progressPercent}%` }}
+                            transition={{ duration: 0.7 }}
                             className="h-full"
                             style={{
-                              width: `${chap.progressPercent}%`,
                               backgroundColor: chapTheme.accentHex,
                             }}
                           />
@@ -1433,7 +1769,7 @@ export default function App() {
                           </button>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>

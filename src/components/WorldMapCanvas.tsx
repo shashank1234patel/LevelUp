@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Check,
   Lock,
@@ -21,6 +22,16 @@ interface WorldMapCanvasProps {
   overrideSubjectTheme?: string;
   compact?: boolean;
 }
+
+const AMBIENT_SPARKLES = [
+  { left: '12%', top: '22%', delay: '0s' },
+  { left: '28%', top: '30%', delay: '0.8s' },
+  { left: '46%', top: '24%', delay: '1.5s' },
+  { left: '64%', top: '34%', delay: '0.4s' },
+  { left: '82%', top: '26%', delay: '1.9s' },
+  { left: '35%', top: '76%', delay: '1.1s' },
+  { left: '72%', top: '78%', delay: '2.2s' },
+];
 
 export const WorldMapCanvas: React.FC<WorldMapCanvasProps> = ({
   chapter,
@@ -77,7 +88,12 @@ export const WorldMapCanvas: React.FC<WorldMapCanvasProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 space-y-4"
+    >
       {/* Header Row */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
@@ -105,30 +121,52 @@ export const WorldMapCanvas: React.FC<WorldMapCanvasProps> = ({
           )}
         </div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
           type="button"
           onClick={onViewBlueprint}
           className="text-xs font-semibold text-[#64748B] hover:text-[#2563EB] transition-colors cursor-pointer"
         >
           View Blueprint
-        </button>
+        </motion.button>
       </div>
 
-      {/* Subject-Themed Adventure Map Canvas */}
+      {/* Animated Subject-Themed Adventure Map Canvas */}
       <div
         className={`relative w-full ${
           compact ? 'h-[340px] sm:h-[390px]' : 'h-[400px] sm:h-[450px]'
         } rounded-3xl overflow-hidden select-none shadow-inner border border-slate-200/70`}
       >
-        <img
-          src={theme.image}
-          alt={theme.themeName}
-          className="absolute inset-0 w-full h-full object-cover transition-all duration-500"
-        />
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={theme.subject}
+            src={theme.image}
+            alt={theme.themeName}
+            initial={{ scale: 1.06, opacity: 0.7 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ opacity: 0.7 }}
+            transition={{ duration: 0.55, ease: 'easeOut' }}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </AnimatePresence>
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-black/5 pointer-events-none" />
 
-        {/* Winding Trail Connector */}
+        {/* Ambient Floating Firefly Sparkles */}
+        {AMBIENT_SPARKLES.map((sp, i) => (
+          <span
+            key={i}
+            style={{
+              left: sp.left,
+              top: sp.top,
+              animationDelay: sp.delay,
+            }}
+            className="animate-firefly absolute w-2.5 h-2.5 rounded-full bg-amber-200/90 shadow-[0_0_10px_3px_rgba(253,230,138,0.85)] pointer-events-none"
+          />
+        ))}
+
+        {/* Animated Flowing Winding Trail Connector */}
         <svg
           viewBox="0 0 1000 450"
           preserveAspectRatio="none"
@@ -139,9 +177,10 @@ export const WorldMapCanvas: React.FC<WorldMapCanvasProps> = ({
             fill="none"
             stroke="#FFFBEB"
             strokeWidth="5"
-            strokeDasharray="10 10"
+            strokeDasharray="12 10"
             strokeLinecap="round"
-            opacity="0.8"
+            opacity="0.85"
+            className="animate-dash-flow"
           />
         </svg>
 
@@ -151,59 +190,85 @@ export const WorldMapCanvas: React.FC<WorldMapCanvasProps> = ({
           const isCompleted = chapter.completedStages.includes(stageMeta.stage);
           const isCurrent =
             !isCompleted && chapter.currentStage === stageMeta.stage;
-          const isUnlocked =
-            isCompleted || stageMeta.stage <= chapter.currentStage;
+          const isUnlocked = true;
 
           return (
-            <div
-              key={stageMeta.stage}
+            <motion.div
+              key={`${theme.subject}_${stageMeta.stage}`}
               style={{ left: `${coord.x}%`, top: `${coord.y}%` }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10 transition-all duration-300"
+              initial={{ scale: 0, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{
+                type: 'spring',
+                stiffness: 260,
+                damping: 18,
+                delay: index * 0.08,
+              }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10"
             >
+              {/* Floating "Start" Tag on Current Stage */}
               {isCurrent && (
-                <div className="mb-1 px-3 py-0.5 rounded-md bg-white text-emerald-600 font-bold text-[11px] shadow-md border border-emerald-100 whitespace-nowrap animate-bounce">
+                <div className="animate-float mb-1 px-3 py-0.5 rounded-md bg-white text-emerald-600 font-bold text-[11px] shadow-md border border-emerald-100 whitespace-nowrap">
                   Start
                 </div>
               )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (isUnlocked) {
-                    onOpenStage(stageMeta.stage);
-                  }
-                }}
-                disabled={!isUnlocked}
-                style={
-                  isUnlocked
-                    ? {
-                        borderColor: theme.accentHex,
-                        boxShadow: theme.ringShadow,
-                      }
-                    : undefined
-                }
-                className={`relative w-[76px] h-[76px] sm:w-[86px] sm:h-[86px] rounded-full flex flex-col items-center justify-center transition-transform duration-200 ${
-                  isUnlocked
-                    ? 'bg-white border-[5px] hover:scale-105 cursor-pointer'
-                    : 'bg-[#64748B]/90 backdrop-blur-xs border-[3px] border-white/85 shadow-[0_8px_18px_rgba(0,0,0,0.3)] cursor-not-allowed'
-                }`}
-              >
-                {isCompleted && (
-                  <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 text-white border-2 border-white flex items-center justify-center shadow-sm">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  </span>
+              <div className="relative flex items-center justify-center">
+                {/* Animated Pulse Halo Ring on Active Checkpoint */}
+                {isCurrent && (
+                  <span
+                    style={{ borderColor: theme.accentHex }}
+                    className="animate-pulse-ring absolute inset-0 rounded-full border-4 pointer-events-none"
+                  />
                 )}
 
-                {getStageIcon(stageMeta.stage, isUnlocked)}
-
-                <span
-                  className={`mt-1 text-[10px] sm:text-[11px] font-bold leading-tight px-1 truncate max-w-[72px] ${
-                    isUnlocked ? 'text-[#1E293B]' : 'text-slate-900'
+                <motion.button
+                  whileHover={isUnlocked ? { scale: 1.1, y: -4 } : undefined}
+                  whileTap={isUnlocked ? { scale: 0.94 } : undefined}
+                  type="button"
+                  onClick={() => {
+                    if (isUnlocked) {
+                      onOpenStage(stageMeta.stage);
+                    }
+                  }}
+                  disabled={!isUnlocked}
+                  style={
+                    isUnlocked
+                      ? {
+                          borderColor: theme.accentHex,
+                          boxShadow: theme.ringShadow,
+                        }
+                      : undefined
+                  }
+                  className={`relative w-[76px] h-[76px] sm:w-[86px] sm:h-[86px] rounded-full flex flex-col items-center justify-center transition-colors duration-200 ${
+                    isUnlocked
+                      ? 'bg-white border-[5px] cursor-pointer'
+                      : 'bg-[#64748B]/90 backdrop-blur-xs border-[3px] border-white/85 shadow-[0_8px_18px_rgba(0,0,0,0.3)] cursor-not-allowed'
                   }`}
                 >
-                  {stageMeta.name}
-                </span>
-              </button>
+                  {isCompleted && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 text-white border-2 border-white flex items-center justify-center shadow-sm"
+                    >
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </motion.span>
+                  )}
+
+                  <div className={isCurrent ? 'animate-float' : ''}>
+                    {getStageIcon(stageMeta.stage, isUnlocked)}
+                  </div>
+
+                  <span
+                    className={`mt-1 text-[10px] sm:text-[11px] font-bold leading-tight px-1 truncate max-w-[72px] ${
+                      isUnlocked ? 'text-[#1E293B]' : 'text-slate-900'
+                    }`}
+                  >
+                    {stageMeta.name}
+                  </span>
+                </motion.button>
+              </div>
 
               <div
                 className={`-mt-2 rounded-b-xl border-t-2 shadow-md ${
@@ -212,7 +277,7 @@ export const WorldMapCanvas: React.FC<WorldMapCanvasProps> = ({
                     : 'w-11 h-4 bg-gradient-to-b from-[#D6D3D1] to-[#A8A29E] border-[#E7E5E4]'
                 }`}
               />
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -237,7 +302,9 @@ export const WorldMapCanvas: React.FC<WorldMapCanvasProps> = ({
           </span>
         </div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.04, y: -1 }}
+          whileTap={{ scale: 0.96 }}
           type="button"
           onClick={() => onOpenStage(chapter.currentStage)}
           style={{ backgroundColor: theme.accentHex }}
@@ -248,8 +315,8 @@ export const WorldMapCanvas: React.FC<WorldMapCanvasProps> = ({
             Start Stage {chapter.currentStage}:{' '}
             {STAGE_METADATA[chapter.currentStage - 1]?.name}
           </span>
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 };

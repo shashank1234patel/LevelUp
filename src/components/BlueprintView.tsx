@@ -119,7 +119,7 @@ export const BlueprintView: React.FC<BlueprintViewProps> = ({
         {STAGE_METADATA.map((stage) => {
           const isCompleted = chapter.completedStages.includes(stage.stage);
           const isCurrent = !isCompleted && chapter.currentStage === stage.stage;
-          const isUnlocked = isCompleted || stage.stage <= chapter.currentStage;
+          const isUnlocked = true;
 
           return (
             <div
